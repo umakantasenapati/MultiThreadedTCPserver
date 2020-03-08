@@ -19,6 +19,7 @@ using namespace std;
 myLog LOG;
 void readServerConfig(string&);
 void checkFileExistence(const string&);
+const int SRVR_MSG_LEN_LIMIT = 1024;
 
 void clientHandleThread(myThreadArgument* clientArgument)
 {
@@ -29,7 +30,7 @@ void clientHandleThread(myThreadArgument* clientArgument)
 	// the server is communicating with this client here
 	while(1)
 	{
-		char messageFromClient[2000];
+		char messageFromClient[SRVR_MSG_LEN_LIMIT];
 		
 		// receive from the client
 
@@ -45,14 +46,15 @@ void clientHandleThread(myThreadArgument* clientArgument)
 		
 		if(msgtype == (int)(msgType::connReq))
 		{
+			cout   << endl << "RECV  from Client ID" << clientid << "msgtype"<<msgtype<<"msgvalue"<<msgvalue<<'\n';
 			if(clientArgument->getAuthStatus()==false)
 			{
 				clientConnection->sendMessage(myMessage(msgType::seqRequest,10).messageToString());
 			}
 		}
-		else if((msgtype != (int)(msgType::connReq)) && (clientArgument->getAuthStatus()==false) || (msgtype == (int)(msgType::EOM)))
+		else if(((msgtype != (int)(msgType::connReq)) && (clientArgument->getAuthStatus()==false)) || (msgtype == (int)(msgType::EOM)))
 		{
-			
+			cout   << endl << "RECV  from Client ID" << clientid << "msgtype"<<msgtype<<"msgvalue"<<msgvalue<<'\n';
 			lock_guard<std::mutex> guardEOMStatusMap(clientEOMStatusMtx);
 			clientEOMStatusMap.insert(std::pair<int,bool>(clientid,true));
 			clientArgument->setAuthStatus(false);
@@ -60,6 +62,7 @@ void clientHandleThread(myThreadArgument* clientArgument)
 		}
 		else if(msgtype == (int)(msgType::seqResp))
 		{
+				LOG << endl << "RECV  from Client ID" << clientid << "msgtype"<<msgtype<<"msgvalue"<<msgvalue<<'\n';
 				lock_guard<std::mutex> guardClientSeqNumMap(clientSeqNumStatusMtx);
 				clientSeqNumMap.insert(std::pair<int,int>(clientid,msgvalue));
 				clientArgument->setAuthStatus(true);
@@ -117,17 +120,15 @@ void serverHandleThread(myThreadArgument* serverArgument)
 		client = myServer->acceptClient(clientName);	
 		
 
-		// lock the std out so we can write to the console
-		//coutSemaphore->lock();
+		
         cout   << endl << "==> A client from [" << clientName << "] is connected!" << endl << endl;
 		LOG << endl << "==> A client from [" << clientName << "] is connected!" << endl << endl;
-		//coutSemaphore->unlock();
+		
 
 		// for this client, generate a thread to handle it
 		if ( currNumOfClients < MAX_NUM_CLIENTS-1 )
 		{
 			clientArgument[currNumOfClients] = new myThreadArgument(client,++clientid);
-			//clientHandle[currNumOfClients] = new myThread(clientHandleThread,(void*)clientArgument[currNumOfClients]);
 			std::thread clientThread(clientHandleThread,clientArgument[currNumOfClients]);
 			clientThread.detach();
 			
@@ -199,12 +200,12 @@ int main()
 			myThreadArgument* clientInfo = serverArgument->getClientArgument(i);
 			if ( clientInfo ) 
 			{
-				cout   << "         " << clientInfo->getHostName() << endl;
-				LOG << "         " << clientInfo->getHostName() << endl;
+				cout   << "         " << clientInfo->getClientId() << endl;
+				LOG << "         " << clientInfo->getClientId() << endl;
 			}
 		}
-		cout   << "   the following clients have shutdown the connection: " << endl;
-		LOG << "   the following clients have shutdown the connection: " << endl;
+		//cout   << "   the following clients have shutdown the connection: " << endl;
+		//LOG << "   the following clients have shutdown the connection: " << endl;
 		{
 				lock_guard<std::mutex> guardEOMStatusMap(clientEOMStatusMtx);
 				if(clientEOMStatusMap.size() ==MAX_NUM_CLIENTS)
@@ -218,7 +219,7 @@ int main()
 		}
         cout   << "-----------------------------------------------------------------" << endl << endl;
 		LOG << "-----------------------------------------------------------------" << endl << endl;
-		//coutSemaphore.unlock();
+		
 	}
 
     return 1;

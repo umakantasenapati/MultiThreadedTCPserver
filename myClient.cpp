@@ -9,7 +9,7 @@
 myLog LOG;
 void readServerConfig(string&);
 void checkFileExistence(const string&);
-
+const int CLNT_MSG_LEN_LIMIT = 1024;
 int main()
 {
 	
@@ -43,7 +43,7 @@ int main()
 		
 		myClient.sendMessage(myMessage(msgType::connReq,10).messageToString());
 		
-		char messageFromServer[2000];
+		char messageFromServer[CLNT_MSG_LEN_LIMIT];
 		recvBytes = myClient.recieveMessage(messageFromServer);
 		if ( recvBytes == -99 ) break;
 		
@@ -53,6 +53,8 @@ int main()
 		int msgvalue;
 		ss>>msgtype>>msgvalue;
 		
+		cout  << "RECV  from Server:" << serverName << "msgtype"<<msgtype<<"msgvalue"<<msgvalue<<'\n';
+		LOG <<  "RECV  from Server:" << serverName << "msgtype"<<msgtype<<"msgvalue"<<msgvalue<<'\n';
 		
 		if(msgtype == (int)(msgType::seqRequest))
 		{
@@ -62,7 +64,7 @@ int main()
 				std::this_thread::sleep_for(std::chrono::milliseconds(100));
 			}
 		}
-		myClient.sendMessage(myMessage(msgType::EOM,501).messageToString());
+		myClient.sendMessage(myMessage(msgType::EOM,401).messageToString());
 		break;
 
 	}

@@ -6,7 +6,7 @@
 using namespace std;
 
 class myTcpSocket;
-const int MAX_NUM_CLIENTS = 10
+const int MAX_NUM_CLIENTS = 10;
 
 class myThreadArgument
 {

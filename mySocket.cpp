@@ -111,7 +111,7 @@ myTcpSocket* myTcpSocket::acceptClient(string& clientHost)
 	int newSocket; 
 
     
-    sockln_t clientAddressLen = sizeof(struct sockaddr_in);
+    socklen_t clientAddressLen = sizeof(struct sockaddr_in);
     struct sockaddr_in clientAddress;   
 
     // Accepts a new client connection and stores its socket file descriptor
