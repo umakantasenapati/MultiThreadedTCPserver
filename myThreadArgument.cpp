@@ -1,6 +1,6 @@
 #include "myThreadArgument.h"
 
-myThreadArgument::myThreadArgument(myTcpSocket* client,string& cName)
+myThreadArgument::myThreadArgument(myTcpSocket* client,int id)
 {
 	
 	clientConnection = client;

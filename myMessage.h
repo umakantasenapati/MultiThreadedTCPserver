@@ -1,13 +1,13 @@
 #ifndef myMessage_H
 #define myMessage_H
-#include <stream>
-#inlcude <string>
+#include <sstream>
+#include <string>
 
 using namespace std;
 
 enum class msgType
 {
-	connReq=0;
+	connReq=0,
 	EOM,
 	seqRequest,
 	seqResp	

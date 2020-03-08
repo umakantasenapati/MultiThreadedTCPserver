@@ -45,7 +45,7 @@ void myLog::init(const string& fileName, int mode)
    if ( (fileName.c_str())[0] )
       openLog(fileName,mode);
    else
-      openLog("syslog.log", mode);
+      openLog("syslog.log", std::ios_base::openmode(mode));
 }
 
 void myLog::init()
@@ -57,7 +57,7 @@ void myLog::openLog(const string& fileName, int mode)
 {
    if (logLevel < NOLOG_MODE)
    {
-      open(fileName.c_str(),mode);
+      open(fileName.c_str(),std::ios_base::openmode(mode));
       
       // fail() returns a null zero when operation fails   
       // rc = (*this).fail();

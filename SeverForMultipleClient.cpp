@@ -3,7 +3,7 @@
 #include "myException.h"
 #include "myHostInfo.h"
 #include "myThreadArgument.h"
-#inlcude "myMessage.h"
+#include "myMessage.h"
 #include <thread>
 #include <sstream>
 #include <map>
@@ -12,7 +12,7 @@
 std::map<int,bool> clientEOMStatusMap;
 std::map<int,int> clientSeqNumMap;
 std::mutex clientEOMStatusMtx;
-std::muext clientSeqNumStatusMtx;
+std::mutex clientSeqNumStatusMtx;
 
 using namespace std;
 
@@ -29,7 +29,7 @@ void clientHandleThread(myThreadArgument* clientArgument)
 	// the server is communicating with this client here
 	while(1)
 	{
-		string messageFromClient[2000];
+		char messageFromClient[2000];
 		
 		// receive from the client
 
@@ -47,7 +47,7 @@ void clientHandleThread(myThreadArgument* clientArgument)
 		{
 			if(clientArgument->getAuthStatus()==false)
 			{
-				clientConnection->sendMessage(myMassage(msgType::seqRequest,10).messageToString);
+				clientConnection->sendMessage(myMessage(msgType::seqRequest,10).messageToString());
 			}
 		}
 		else if((msgtype != (int)(msgType::connReq)) && (clientArgument->getAuthStatus()==false) || (msgtype == (int)(msgType::EOM)))
@@ -150,16 +150,16 @@ int main()
 	// get server's IP address and name
 	string serverIPAddress = "";
 	readServerConfig(serverIPAddress);
-	LOG << endl;
-	LOG << "Retrieve the remoteHost [SERVER] name and address:" << endl;
-	LOG << "		==> the given address is " << serverIPAddress << endl;
+	winLog << endl;
+	winLog << "Retrieve the remoteHost [SERVER] name and address:" << endl;
+	winLog << "		==> the given address is " << serverIPAddress << endl;
 
     myHostInfo serverInfo(serverIPAddress,ADDRESS);
 	string serverName = serverInfo.getHostName();
     cout << "Name: " << serverName << endl;
     cout << "Address: " << serverIPAddress << endl;
-	LOG << "		==> Name: " << serverName << endl;
-	LOG << "		==> Address: " << serverIPAddress << endl;
+	winLog << "		==> Name: " << serverName << endl;
+	winLog << "		==> Address: " << serverIPAddress << endl;
 	
 	int serverid=1;
 	
@@ -172,7 +172,7 @@ int main()
 	
 	myThreadArgument* serverArgument = new myThreadArgument(&myServer,serverid);
 	
-	std::serverThread(serverHandleThread,serverArgument);
+	std::thread serverThread(serverHandleThread,serverArgument);
 	serverThread.detach();
 	
 	
@@ -184,7 +184,7 @@ int main()
 		// do whatever you need to do here, I am using Sleep(x) 
 		// to make a little delay, pretending to be the other 
 		// possible processings.
-		Sleep(50);
+		sleep(50);
 
 		// report the server status
 		
@@ -211,7 +211,7 @@ int main()
 				{
 					for (auto it:clientEOMStatusMap)
 					{
-						cout<<"Client ID"<<it->first<<'\n';
+						cout<<"Client ID"<<it.first<<'\n';
 					}
 					break;
 				}

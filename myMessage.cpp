@@ -8,7 +8,7 @@ myMessage::myMessage(msgType type,int content):header(type),payload(content)
 	
 }
 
-myMessage::myMessage(const myMessage& refMsg)::header(refMsg.header),payload(refMsg.payload)
+myMessage::myMessage(const myMessage& refMsg):header(refMsg.header),payload(refMsg.payload)
 {
 	
 }

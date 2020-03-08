@@ -41,7 +41,7 @@ int main()
 	while (1)
 	{
 		
-		myClient.sendMessage(myMassage(msgType::connReq,10).messageToString);
+		myClient.sendMessage(myMessage(msgType::connReq,10).messageToString);
 		
 		char messageFromServer[2000];
 		recvBytes = myClient.recieveMessage(messageFromServer);
@@ -51,11 +51,11 @@ int main()
 		{
 			for(auto i=0;i<100;i++)
 			{
-				myClient.sendMessage(myMassage(msgType::seqResp,501).messageToString);
+				myClient.sendMessage(myMessage(msgType::seqResp,501).messageToString);
 				std::this_thread::sleep_for(std::chrono::miliseconds(100));
 			}
 		}
-		myClient.sendMessage(myMassage(msgType::EOM,501).messageToString);
+		myClient.sendMessage(myMessage(msgType::EOM,501).messageToString);
 		break;
 
 	}

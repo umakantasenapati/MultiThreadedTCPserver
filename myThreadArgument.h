@@ -1,7 +1,7 @@
 #ifndef myThreadArgument_H
 #define myThreadArgument_H
 
-
+#include <string>
 class myTcpSocket;
 const int MAX_NUM_CLIENTS = 10;
 

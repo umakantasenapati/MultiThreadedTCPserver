@@ -120,7 +120,7 @@ myTcpSocket* myTcpSocket::acceptClient(string& clientHost)
 	int newSocket;   // the new socket file descriptor returned by the accept systme call
 
     // the length of the client's address
-    int clientAddressLen = sizeof(struct sockaddr_in);
+    sockln_t clientAddressLen = sizeof(struct sockaddr_in);
     struct sockaddr_in clientAddress;    // Address of the client that sent data
 
     // Accepts a new client connection and stores its socket file descriptor
