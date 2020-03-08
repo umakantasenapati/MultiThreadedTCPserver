@@ -126,7 +126,7 @@ void serverHandleThread(myThreadArgument* serverArgument)
 		
 
 		// for this client, generate a thread to handle it
-		if ( currNumOfClients < MAX_NUM_CLIENTS-1 )
+		if ( currNumOfClients <= MAX_NUM_CLIENTS-1 )
 		{
 			clientArgument[currNumOfClients] = new myThreadArgument(client,++clientid);
 			std::thread clientThread(clientHandleThread,clientArgument[currNumOfClients]);
@@ -204,21 +204,23 @@ int main()
 				LOG << "         " << clientInfo->getClientId() << endl;
 			}
 		}
-		//cout   << "   the following clients have shutdown the connection: " << endl;
-		//LOG << "   the following clients have shutdown the connection: " << endl;
+		
 		{
 				lock_guard<std::mutex> guardEOMStatusMap(clientEOMStatusMtx);
 				if(clientEOMStatusMap.size() ==MAX_NUM_CLIENTS)
 				{
 					for (auto it:clientEOMStatusMap)
 					{
-						cout<<"Client ID"<<it.first<<'\n';
+						cout<<"Client closed with Client ID: "<<it.first<<'\n';
 					}
+					cout   << "  All Clients Closed , Serer getting shut Down " << endl;
+					LOG << "   All Clients Closed , Serer getting shut Down " << endl;
+					cout   << "-----------------------------------------------------------------" << endl << endl;
+					LOG << "-----------------------------------------------------------------" << endl << endl;
 					break;
 				}
 		}
-        cout   << "-----------------------------------------------------------------" << endl << endl;
-		LOG << "-----------------------------------------------------------------" << endl << endl;
+        
 		
 	}
 
