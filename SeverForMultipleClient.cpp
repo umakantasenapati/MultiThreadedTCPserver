@@ -19,7 +19,7 @@ std::mutex logMtx;;
 
 using namespace std;
 
-myLog LOG(ServerLog.txt);
+myLog LOG("ServerLog.txt");
 void readServerConfig(string&);
 void checkFileExistence(const string&);
 const int SRVR_MSG_LEN_LIMIT = 1024;
@@ -209,7 +209,7 @@ int main(int argc, char* argv[])
 
 	
 	//myThreadArgument* serverArgument = new myThreadArgument(&myServer,serverid,noOfClient);
-	shared_ptr<myThreadArgument> serverArgument= make_shared<serverArgument>(myServer,serverid,noOfClient);
+	shared_ptr<myThreadArgument> serverArgument= make_shared<myThreadArgument>(myServer,serverid,noOfClient);
 	
 	std::thread serverThread(serverHandleThread,serverArgument);
 	serverThread.detach();
@@ -251,7 +251,7 @@ int main(int argc, char* argv[])
 		logMtx.unlock();
 		
 		{
-				scoped_lock<std::mutex> guardEOMStatusMap(clientEOMStatusMtx,logMtx);
+				std::lock(clientEOMStatusMtx,logMtx);
 				if(clientEOMStatusMap.size() ==noOfClient)
 				{
 					
@@ -270,6 +270,8 @@ int main(int argc, char* argv[])
 					
 					break;
 				}
+				clientEOMStatusMtx.unlock();
+				logMtx.unlock();
 		}
         
 		

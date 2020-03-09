@@ -1,4 +1,6 @@
 #include "myThreadArgument.h"
+#include <iostream>
+using namespace std;
 
 myThreadArgument::myThreadArgument(shared_ptr<myTcpSocket> client,int id,int noOfClients)
 {
