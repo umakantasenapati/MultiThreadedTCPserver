@@ -83,7 +83,7 @@ void clientHandleThread(shared_ptr<myThreadArgument> clientArgument)
 		logMtx.lock();
 		cout   << endl << "RECV  from Client ID" << clientid << "msgtype"<<msgtype<<"msgvalue"<<msgvalue<<'\n';
 		logMtx.unlock();
-		break;
+		
     }
 
 	
@@ -149,6 +149,8 @@ void serverHandleThread(shared_ptr<myThreadArgument> serverArgument)
 			serverArgument->addClientArgument(clientArgument);
 			currNumOfClients++;
 		}
+		else
+			break;
 	}
 
     
