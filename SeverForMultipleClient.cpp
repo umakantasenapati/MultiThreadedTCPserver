@@ -204,8 +204,8 @@ int main(int argc, char* argv[])
 	// open socket on the local host(server) and show its configuration
 	//myTcpSocket myServer(PORTNUM);
 	shared_ptr<myTcpSocket> myServer(new myTcpSocket(PORTNUM));
-	cout   << myServer;
-	LOG << myServer;
+	cout   <<*(myServer);
+	LOG << *(myServer);
 
 	
 	//myThreadArgument* serverArgument = new myThreadArgument(&myServer,serverid,noOfClient);
