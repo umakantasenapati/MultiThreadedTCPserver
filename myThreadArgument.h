@@ -4,7 +4,7 @@
 #include <string>
 #include <memory>
 
-using namespace std;
+
 
 class myTcpSocket;
 const int MAX_NUM_CLIENTS = 10;
