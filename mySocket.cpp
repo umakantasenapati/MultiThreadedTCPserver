@@ -106,7 +106,7 @@ void myTcpSocket::connectToServer(string& serverNameOrAddr,hostType hType)
 	}
 }
 
-myTcpSocket* myTcpSocket::acceptClient(string& clientHost)
+shared_ptr<myTcpSocket> myTcpSocket::acceptClient(string& clientHost)
 {
 	int newSocket; 
 
@@ -138,7 +138,7 @@ myTcpSocket* myTcpSocket::acceptClient(string& clientHost)
     clientHost += string(hostName);
 	
     
-    myTcpSocket* retSocket = new myTcpSocket();
+    shared_ptr<myTcpSocket> retSocket =make_shared<myTcpSocket>();
 	retSocket->setSocketId(newSocket);
     return retSocket;
 }

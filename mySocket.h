@@ -11,6 +11,7 @@
 #include <sys/types.h>
 #include <string.h>
 #include <sys/ioctl.h>
+#include <memory>
 
 
 
@@ -129,7 +130,7 @@ public:
 	   is stored in the parameter
 	   a server call
 	*/
-	myTcpSocket* acceptClient(string&);
+	shared_ptr<myTcpSocket> acceptClient(string&);
 
 	// Listens to connecting clients, a server call
 	void listenToClient(int numPorts = 5);

@@ -8,23 +8,26 @@
 #include <sstream>
 #include <map>
 #include <mutex>
+#include <memory>
 
 std::map<int,bool> clientEOMStatusMap;
 std::map<int,int> clientSeqNumMap;
 std::mutex clientEOMStatusMtx;
 std::mutex clientSeqNumStatusMtx;
+std::mutex logMtx;;
+
 
 using namespace std;
 
-myLog LOG;
+myLog LOG(ServerLog.txt);
 void readServerConfig(string&);
 void checkFileExistence(const string&);
 const int SRVR_MSG_LEN_LIMIT = 1024;
 
-void clientHandleThread(myThreadArgument* clientArgument)
+void clientHandleThread(shared_ptr<myThreadArgument> clientArgument)
 {
 	
-	myTcpSocket* clientConnection = clientArgument->getClientConnect();
+	shared_ptr<myTcpSocket> clientConnection = clientArgument->getClientConnect();
 	int clientid = clientArgument->getClientId();
 
 	// the server is communicating with this client here
@@ -46,7 +49,10 @@ void clientHandleThread(myThreadArgument* clientArgument)
 		
 		if(msgtype == (int)(msgType::connReq))
 		{
+			logMtx.lock();
 			cout   << endl << "RECV  from Client ID" << clientid << "msgtype"<<msgtype<<"msgvalue"<<msgvalue<<'\n';
+			logMtx.unlock();
+			
 			if(clientArgument->getAuthStatus()==false)
 			{
 				clientConnection->sendMessage(myMessage(msgType::seqRequest,10).messageToString());
@@ -54,7 +60,10 @@ void clientHandleThread(myThreadArgument* clientArgument)
 		}
 		else if(((msgtype != (int)(msgType::connReq)) && (clientArgument->getAuthStatus()==false)) || (msgtype == (int)(msgType::EOM)))
 		{
+			logMtx.lock();
 			cout   << endl << "RECV  from Client ID" << clientid << "msgtype"<<msgtype<<"msgvalue"<<msgvalue<<'\n';
+			logMtx.unlock();
+			
 			lock_guard<std::mutex> guardEOMStatusMap(clientEOMStatusMtx);
 			clientEOMStatusMap.insert(std::pair<int,bool>(clientid,true));
 			clientArgument->setAuthStatus(false);
@@ -62,47 +71,56 @@ void clientHandleThread(myThreadArgument* clientArgument)
 		}
 		else if(msgtype == (int)(msgType::seqResp))
 		{
+			    logMtx.lock();
 				LOG << endl << "RECV  from Client ID" << clientid << "msgtype"<<msgtype<<"msgvalue"<<msgvalue<<'\n';
+				logMtx.unlock();
+				
 				lock_guard<std::mutex> guardClientSeqNumMap(clientSeqNumStatusMtx);
 				clientSeqNumMap.insert(std::pair<int,int>(clientid,msgvalue));
 				clientArgument->setAuthStatus(true);
 		}
 		
+		logMtx.lock();
 		cout   << endl << "RECV  from Client ID" << clientid << "msgtype"<<msgtype<<"msgvalue"<<msgvalue<<'\n';
-		
-		
+		logMtx.unlock();
+		break;
     }
 
 	
 }
 
-void serverHandleThread(myThreadArgument* serverArgument)
+void serverHandleThread(shared_ptr<myThreadArgument> serverArgument)
 {
 	
 
 	// get the server
-	myTcpSocket* myServer = serverArgument->getClientConnect();
+	shared_ptr<myTcpSocket> myServer = serverArgument->getClientConnect();
 	string serverName = serverArgument->getHostName();
 
 	// bind the server to the socket
     myServer->bindSocket();
+	
+	logMtx.lock();
 	cout   << endl << "server finishes binding process... " << endl;
 	LOG << endl << "server finishes binding process... " << endl;
+	logMtx.unlock();
 	
 	// server starts to wait for client calls
 	myServer->listenToClient();
+	logMtx.lock();
 	cout   << "server is waiting for client calls ... " << endl;
 	LOG << "server is waiting for client calls ... " << endl;
+	logMtx.unlock();
 	
 	// server starts to listen, and generates a thread to 
 	// handle each client
 
-	myThreadArgument* clientArgument[MAX_NUM_CLIENTS];
+	//myThreadArgument* clientArgument[MAX_NUM_CLIENTS];
 	
-	for ( int i = 0; i < MAX_NUM_CLIENTS; i++ )
+	/*for ( int i = 0; i < MAX_NUM_CLIENTS; i++ )
 	{
 		clientArgument[i] = NULL;
-	}
+	}*/
 	int currNumOfClients = 0;
 	int clientid=0;
 
@@ -110,24 +128,25 @@ void serverHandleThread(myThreadArgument* serverArgument)
 	{
 		// wait to accept a client connection.  
 		// processing is suspended until the client connects
-    	myTcpSocket* client;    // connection dedicated for client communication
+    	shared_ptr<myTcpSocket> client;    // connection dedicated for client communication
 		string clientName;      // client name 
 		client = myServer->acceptClient(clientName);	
 		
 
-		
+		logMtx.lock();
         cout   << endl << "==> A client from [" << clientName << "] is connected!" << endl << endl;
 		LOG << endl << "==> A client from [" << clientName << "] is connected!" << endl << endl;
-		
+		logMtx.unlock();
 
 		// for this client, generate a thread to handle it
 		if ( currNumOfClients < serverArgument->getNoOfAllowedClients())
 		{
-			clientArgument[currNumOfClients] = new myThreadArgument(client,++clientid);
-			std::thread clientThread(clientHandleThread,clientArgument[currNumOfClients]);
+			//clientArgument[currNumOfClients] = new myThreadArgument(client,++clientid);
+			shared_ptr<myThreadArgument> clientArgument=make_shared<myThreadArgument>(client,++clientid);
+			std::thread clientThread(clientHandleThread,clientArgument);
 			clientThread.detach();
 			
-			serverArgument->addClientArgument(clientArgument[currNumOfClients]);
+			serverArgument->addClientArgument(clientArgument);
 			currNumOfClients++;
 		}
 	}
@@ -183,12 +202,14 @@ int main(int argc, char* argv[])
 	
 
 	// open socket on the local host(server) and show its configuration
-	myTcpSocket myServer(PORTNUM);
+	//myTcpSocket myServer(PORTNUM);
+	shared_ptr<myTcpSocket> myServer(new myTcpSocket(PORTNUM));
 	cout   << myServer;
 	LOG << myServer;
 
 	
-	myThreadArgument* serverArgument = new myThreadArgument(&myServer,serverid,noOfClient);
+	//myThreadArgument* serverArgument = new myThreadArgument(&myServer,serverid,noOfClient);
+	shared_ptr<myThreadArgument> serverArgument= make_shared<serverArgument>(myServer,serverid,noOfClient);
 	
 	std::thread serverThread(serverHandleThread,serverArgument);
 	serverThread.detach();
@@ -203,41 +224,50 @@ int main(int argc, char* argv[])
 		sleep(50);
 
 		// report the server status
-		
+		logMtx.lock();
 		cout   << endl << "-----------------------------------------------------------------" << endl;
 		LOG << endl << "-----------------------------------------------------------------" << endl;
 		cout   << "server (name:" << serverName << ") status report:" << endl;
 		LOG << "server (name:" << serverName << ") status report:" << endl;
 		cout   << "   the following clients have successfully connected with server: " << endl;
 		LOG << "   the following clients have successfully connected with server: " << endl;
+		logMtx.unlock();
+		
 		for ( int i = 0; i < noOfClient; i ++ )
 		{
-			myThreadArgument* clientInfo = serverArgument->getClientArgument(i);
+			shared_ptr<myThreadArgument> clientInfo = serverArgument->getClientArgument(i);
 			if ( clientInfo ) 
 			{
+				lock_guard<std::mutex> guardLog(logMtx);
 				cout   << " Client ID:    " << clientInfo->getClientId() << endl;
 				LOG << "    Client ID:      " << clientInfo->getClientId() << endl;
 				
+				
 			}
 		}
+		logMtx.lock();
 		cout   << endl << "-----------------------------------------------------------------" << endl;
 		LOG << endl << "-----------------------------------------------------------------" << endl;
+		logMtx.unlock();
 		
 		{
-				lock_guard<std::mutex> guardEOMStatusMap(clientEOMStatusMtx);
+				scoped_lock<std::mutex> guardEOMStatusMap(clientEOMStatusMtx,logMtx);
 				if(clientEOMStatusMap.size() ==noOfClient)
 				{
 					
 					cout   << "  Clien shut down Report " << endl;
 					LOG << "   Clien shut down Report " << endl;
+										
 					for (auto it:clientEOMStatusMap)
 					{
 						cout<<"Client closed with Client ID: "<<it.first<<'\n';
 					}
+					
 					cout   << "  All Clients Closed , Serer getting shut Down " << endl;
 					LOG << "   All Clients Closed , Serer getting shut Down " << endl;
 					cout   << "-----------------------------------------------------------------" << endl << endl;
 					LOG << "-----------------------------------------------------------------" << endl << endl;
+					
 					break;
 				}
 		}

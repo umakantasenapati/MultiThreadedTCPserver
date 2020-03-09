@@ -1,8 +1,8 @@
 #include "myThreadArgument.h"
 
-myThreadArgument::myThreadArgument(myTcpSocket* client,int id,int noOfClients)
+myThreadArgument::myThreadArgument(shared_ptr<myTcpSocket> client,int id,int noOfClients)
 {
-	
+	cout<<"******Inside myThreadArgument constructor********"<<'\n';
 	clientConnection = client;
 	signalToEnd = false;
 
@@ -16,16 +16,16 @@ myThreadArgument::myThreadArgument(myTcpSocket* client,int id,int noOfClients)
 
 myThreadArgument::~myThreadArgument() 
 {
-	
+	cout<<"*******Inside myThreadArgument destructor********"<<'\n';
 }
 
-void myThreadArgument::addClientArgument(myThreadArgument* argument)
+void myThreadArgument::addClientArgument(shared_ptr<myThreadArgument> argument)
 {
 	if ( argument )
 		clientArgument[numOfConnectedClients++] = argument;
 }
 
-myThreadArgument* myThreadArgument::getClientArgument(int index)
+shared_ptr<myThreadArgument> myThreadArgument::getClientArgument(int index)
 {
 	if ( index < MAX_NUM_CLIENTS ) return clientArgument[index];
 	return NULL;

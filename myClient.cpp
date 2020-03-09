@@ -6,7 +6,7 @@
 #include <chrono>
 #include <thread>
 
-myLog LOG;
+myLog LOG(clientLog.txt);
 void readServerConfig(string&);
 void checkFileExistence(const string&);
 const int CLNT_MSG_LEN_LIMIT = 1024;

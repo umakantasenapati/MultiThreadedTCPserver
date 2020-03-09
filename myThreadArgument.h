@@ -2,6 +2,7 @@
 #define myThreadArgument_H
 
 #include <string>
+#include <memory>
 
 using namespace std;
 
@@ -15,10 +16,10 @@ private:
 	
 
 	
-	myTcpSocket* clientConnection;    // the connecting socket to the client
+	shared_ptr<myTcpSocket> clientConnection;    // the connecting socket to the client
 	std::string hostName;                // the name of the client
 	int clienId;
-	myThreadArgument* clientArgument[MAX_NUM_CLIENTS];
+	shared_ptr<myThreadArgument> clientArgument[MAX_NUM_CLIENTS];
     int numOfConnectedClients;
 	int noOfAllowedClients;
 
@@ -28,13 +29,13 @@ private:
 public:
 
 	
-	myThreadArgument(myTcpSocket* client,int id,int noOfAllowedClients=0);
+	myThreadArgument(shared_ptr<myTcpSocket> client,int id,int noOfAllowedClients=0);
 	~myThreadArgument() ;
 
 	
 
 	
-	myTcpSocket* getClientConnect()     { return clientConnection; }
+	shared_ptr<myTcpSocket> getClientConnect()     { return clientConnection; }
 	std::string&      getHostName()          { return hostName; }
 	bool getSignalToEnd()               { return signalToEnd; }
 	void setSignalToEnd(bool s)         { signalToEnd = s; }
@@ -43,8 +44,8 @@ public:
 	int getClientId() {return clienId; }
 	int getNoOfAllowedClients() {return noOfAllowedClients;}
 
-	void addClientArgument(myThreadArgument*);
-	myThreadArgument* getClientArgument(int);
+	void addClientArgument(shared_ptr<myThreadArgument>);
+	shared_ptr<myThreadArgument> getClientArgument(int);
 
 	
 };
